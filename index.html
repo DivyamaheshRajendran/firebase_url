@@ -4,8 +4,6 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Firebase URL Store</title>
-
-  <!-- PWA manifest -->
   <link rel="manifest" href="manifest.json">
   <meta name="theme-color" content="#317EFB">
 
@@ -66,6 +64,12 @@
       color: white;
     }
 
+    #installBtn {
+      display: none; /* hidden by default */
+      background: #FF9800;
+      color: white;
+    }
+
     button:hover {
       transform: scale(1.05);
       opacity: 0.9;
@@ -95,6 +99,7 @@
     <br>
     <button onclick="saveURL()">💾 Save URL</button>
     <button onclick="getURL()">📥 Get URL</button>
+    <button id="installBtn">⬇️ Install App</button>
 
     <p id="result"></p>
   </div>
@@ -152,6 +157,26 @@
         .then(() => console.log("✅ Service Worker registered"))
         .catch(err => console.log("❌ Service Worker error:", err));
     }
+
+    // PWA Install Button
+    let deferredPrompt;
+    const installBtn = document.getElementById("installBtn");
+
+    window.addEventListener("beforeinstallprompt", (e) => {
+      e.preventDefault();
+      deferredPrompt = e;
+      installBtn.style.display = "inline-block";
+    });
+
+    installBtn.addEventListener("click", async () => {
+      installBtn.style.display = "none";
+      if (deferredPrompt) {
+        deferredPrompt.prompt();
+        const { outcome } = await deferredPrompt.userChoice;
+        console.log(`User response to install: ${outcome}`);
+        deferredPrompt = null;
+      }
+    });
   </script>
 </body>
 </html>
