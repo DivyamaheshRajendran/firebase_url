@@ -2,181 +2,51 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Firebase URL Store</title>
-  <link rel="manifest" href="manifest.json">
-  <meta name="theme-color" content="#317EFB">
-
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      margin: 0;
-      padding: 0;
-      background: linear-gradient(135deg, #317EFB, #6EC6FF);
-      color: #333;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
-    }
-
-    .container {
-      background: white;
-      padding: 30px;
-      border-radius: 15px;
-      box-shadow: 0px 8px 20px rgba(0, 0, 0, 0.2);
-      text-align: center;
-      width: 350px;
-      max-width: 90%;
-    }
-
-    h2 {
-      color: #317EFB;
-      margin-bottom: 20px;
-    }
-
-    input {
-      width: 90%;
-      padding: 10px;
-      border: 2px solid #317EFB;
-      border-radius: 8px;
-      margin-bottom: 15px;
-      font-size: 16px;
-    }
-
-    button {
-      padding: 10px 20px;
-      margin: 8px;
-      border: none;
-      border-radius: 8px;
-      cursor: pointer;
-      font-size: 16px;
-      transition: all 0.3s ease;
-    }
-
-    button:first-of-type {
-      background: #317EFB;
-      color: white;
-    }
-
-    button:last-of-type {
-      background: #34A853;
-      color: white;
-    }
-
-    #installBtn {
-      display: none; /* hidden by default */
-      background: #FF9800;
-      color: white;
-    }
-
-    button:hover {
-      transform: scale(1.05);
-      opacity: 0.9;
-    }
-
-    #result {
-      margin-top: 20px;
-      font-size: 16px;
-    }
-
-    a {
-      color: #317EFB;
-      text-decoration: none;
-      font-weight: bold;
-    }
-
-    a:hover {
-      text-decoration: underline;
-    }
-  </style>
-</head>
-<body>
-  <div class="container">
-    <h2>🔥 Firebase URL Store 🔗</h2>
-
-    <input type="text" id="urlInput" placeholder="Enter a URL">
-    <br>
-    <button onclick="saveURL()">💾 Save URL</button>
-    <button onclick="getURL()">📥 Get URL</button>
-    <button id="installBtn">⬇️ Install App</button>
-
-    <p id="result"></p>
-  </div>
-
-  <!-- Firebase + Script -->
+  <title>Redirect Page</title>
+  <link rel="icon" href="assets/image1.png" type="image/png" />
   <script type="module">
+    // Import Firebase SDK
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
-    import { getDatabase, ref, set, get, child } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-database.js";
+    import { getDatabase, ref, get, child } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-database.js";
 
+    // ✅ Your Firebase configuration
     const firebaseConfig = {
-      apiKey: "AIzaSyXXXX",
-      authDomain: "your-project.firebaseapp.com",
-      databaseURL: "https://your-project-default-rtdb.firebaseio.com",
-      projectId: "your-project",
-      storageBucket: "your-project.appspot.com",
-      messagingSenderId: "1234567890",
-      appId: "1:1234567890:web:xxxxxx"
+      apiKey: "AIzaSyD7Iv_rkzbL85nisC3DmPl3774YMQQ6FFM",
+      authDomain: "linknest-6e4c7.firebaseapp.com",
+      databaseURL: "https://linknest-6e4c7-default-rtdb.firebaseio.com",
+      projectId: "linknest-6e4c7",
+      storageBucket: "linknest-6e4c7.firebasestorage.app",
+      messagingSenderId: "464019230541",
+      appId: "1:464019230541:web:c980aa3f971092f53ab104"
     };
 
+    // Initialize Firebase
     const app = initializeApp(firebaseConfig);
     const db = getDatabase(app);
 
-    function saveURL() {
-      const url = document.getElementById("urlInput").value.trim();
-      if (!url) {
-        alert("⚠️ Please enter a URL first!");
-        return;
-      }
-      set(ref(db, "urls/lastUrl"), { link: url })
-        .then(() => alert("✅ URL saved to Firebase"))
-        .catch(err => console.error("❌ Error saving URL:", err));
-    }
-
-    function getURL() {
-      const dbRef = ref(db);
-      get(child(dbRef, "urls/lastUrl")).then(snapshot => {
+    // 🚀 Get last saved URL and redirect
+    async function redirectToLastUrl() {
+      try {
+        const dbRef = ref(db);
+        const snapshot = await get(child(dbRef, "urls/lastUrl"));
         if (snapshot.exists()) {
-          const link = snapshot.val().link;
-          document.getElementById("result").innerHTML =
-            `🔗 <a href="${link}" target="_blank">${link}</a>`;
+          const data = snapshot.val();
+          const lastUrl = data.link; // ✅ Get the actual URL string
+          console.log("Last saved URL:", lastUrl);
+          if (lastUrl) {
+            window.location.href = lastUrl; // Redirect
+          } else {
+            alert("⚠️ URL entry is empty!");
+          }
         } else {
-          document.getElementById("result").innerText = "⚠️ No data found!";
+          alert("⚠️ No URL found in database!");
         }
-      }).catch(err => console.error("❌ Error retrieving URL:", err));
-    }
-
-    window.saveURL = saveURL;
-    window.getURL = getURL;
-  </script>
-
-  <!-- Service Worker -->
-  <script>
-    if ("serviceWorker" in navigator) {
-      navigator.serviceWorker.register("service-worker.js")
-        .then(() => console.log("✅ Service Worker registered"))
-        .catch(err => console.log("❌ Service Worker error:", err));
-    }
-
-    // PWA Install Button
-    let deferredPrompt;
-    const installBtn = document.getElementById("installBtn");
-
-    window.addEventListener("beforeinstallprompt", (e) => {
-      e.preventDefault();
-      deferredPrompt = e;
-      installBtn.style.display = "inline-block";
-    });
-
-    installBtn.addEventListener("click", async () => {
-      installBtn.style.display = "none";
-      if (deferredPrompt) {
-        deferredPrompt.prompt();
-        const { outcome } = await deferredPrompt.userChoice;
-        console.log(`User response to install: ${outcome}`);
-        deferredPrompt = null;
+      } catch (err) {
+        console.error("❌ Error retrieving URL:", err);
       }
-    });
+    }
+
+    redirectToLastUrl();
   </script>
-</body>
+</head>
 </html>
